@@ -1,0 +1,54 @@
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Build output
+out/
+target/
+build/
+
+# Logs
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Spring Boot specific
+# 로컬에서만 쓰는 애플리케이션 환경설정
+application-local.properties
+application-local.yml
+application-*.yml
+application-*.properties
+
+# Temporary files
+*.swp
+*.swo
+*.tmp
+*.bak
+
+# IDE-specific cache
+.classpath
+.project
+.settings/
+
+# IntelliJ generated plugin files
+.idea_modules/
+
+# Exclude local environment files
+*.env
