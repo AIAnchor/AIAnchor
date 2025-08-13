@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>IAnchor – 생성 결과(테스트)</title>
+    <style>
+        body{font:16px/1.6 system-ui,"Noto Sans KR",sans-serif; margin:24px; color:#0f172a;}
+        .wrap{max-width:960px; margin:0 auto;}
+        h2{margin:0 0 12px;}
+        .muted{color:#6b7280; font-size:14px; margin-bottom:16px;}
+        pre{white-space:pre-wrap; border:1px solid #e5e7eb; padding:14px; border-radius:10px; background:#fafafa; min-height:220px;}
+        .small{font-size:12px; color:#94a3b8; margin-top:8px;}
+        .back{display:inline-block; margin-top:14px; text-decoration:none; color:#2563eb;}
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <h2>생성된 스크립트 (테스트)</h2>
+    <div class="muted">/api/generate 호출 후 응답을 아래에 표시합니다.</div>
+    <pre id="out">로딩 중...</pre>
+    <div class="small">
+        * 서버가 204(콘솔 출력 전용)로 응답하도록 설정되어 있으면 화면에 표시할 내용이 없을 수 있습니다.
+        <br/>* API 키가 placeholder(aaa)인 경우, 프롬프트 미리보기 문구가 나옵니다.
+    </div>
+    <a class="back" href="index.html">&lt; 돌아가기</a>
+</div>
+
+<script>
+    (async function(){
+      const out = document.getElementById('out');
+      try{
+        // index.html의 "생성 시작(테스트)"에서 저장한 데이터
+        const raw = sessionStorage.getItem('ianchorPayload');
+        if(!raw){
+          out.textContent = '입력값이 없습니다. (index.html에서 생성 시작 버튼으로 진입해 주세요)';
+          return;
+        }
+        const payload = JSON.parse(raw);
+
+        const res = await fetch('/api/generate', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(payload)
+        });
+
+        // 콘솔 출력 전용(204)인 경우
+        if(res.status === 204){
+          out.textContent = '서버가 204 No Content로 응답했습니다. 콘솔(터미널)에서 결과를 확인하세요.';
+          return;
+        }
+
+        // 일반 오류 처리
+        if(!res.ok){
+          const text = await res.text();
+          out.textContent = '요청 실패 (' + res.status + '):\n' + text;
+          return;
+        }
+
+        // JSON 응답 파싱
+        let data;
+        const ct = res.headers.get('content-type') || '';
+        if(ct.includes('application/json')){
+          data = await res.json();
+        }else{
+          // 혹시 JSON이 아니면 텍스트로 표시
+          const text = await res.text();
+          out.textContent = text;
+          return;
+        }
+
+        // script 필드 있으면 스크립트만 출력
+        if(data && typeof data.script === 'string' && data.script.length > 0){
+          out.textContent = data.script;
+        }else{
+          out.textContent = JSON.stringify(data, null, 2);
+        }
+      }catch(err){
+        out.textContent = '요청 중 오류: ' + (err && err.message ? err.message : err);
+      }
+    })();
+</script>
+</body>
+</html>

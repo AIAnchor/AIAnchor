@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>IAnchor – Content Input</title>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        :root{
+          --brand:#1685ff; --ink:#0f172a; --sub:#64748b;
+          --card:#f5f6f7; --line:#e5e7eb; --accent:#22c55e;
+        }
+        *{ box-sizing:border-box; }
+        body{ margin:0; background:#fff; color:var(--ink);
+          font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR",Arial,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
+
+        .topbar{ height:56px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; padding:0 16px; }
+        .logo{ display:flex; align-items:center; gap:8px; color:#111827; font-weight:700; }
+        .logo__box{ width:28px; height:28px; border-radius:6px; border:2px dashed var(--line); display:inline-flex; align-items:center; justify-content:center; font-size:10px; color:#94a3b8; }
+        .prev-link{ font-size:13px; color:#9ca3af; text-decoration:none; cursor:pointer; }
+        .prev-link:hover{ color:#6b7280; }
+
+        .header{ text-align:center; margin:28px 0 12px; }
+        .header__eyebrow{ font-size:34px; font-weight:800; }
+        .header__brand{ color:var(--brand); font-weight:800; letter-spacing:.2px; }
+        .header__desc{ color:#64748b; margin-top:10px; font-size:15px; }
+
+        .card{ width:min(980px,92vw); background:var(--card); border-radius:14px; margin:22px auto; padding:20px; border:1px solid #eceff1; position:relative; }
+        .row{ display:flex; gap:12px; align-items:center; }
+        .input,.textarea{ width:100%; border:1px solid var(--line); border-radius:10px; background:#fff; color:#111827; padding:14px; outline:none; }
+        .input::placeholder,.textarea::placeholder{ color:#c4cbd5; }
+        .input:focus,.textarea:focus{ border-color:#cbd5e1; box-shadow:0 0 0 2px rgba(22,133,255,.08); }
+        .textarea{ height:260px; resize:none; overflow:auto; margin-top:14px; }
+
+        .type-select{ border:1px solid var(--line); background:#fff; border-radius:10px; padding:10px 12px; cursor:pointer; min-width:88px; margin-left:8px; }
+
+        .guideline-wrap{ display:flex; justify-content:flex-end; margin-top:10px; position:relative; }
+        .guideline-trigger{ font-size:13px; color:#7c8aa0; cursor:pointer; user-select:none; text-decoration:underline dotted; }
+        .popover{ position:absolute; right:0; top:28px; width:min(440px,86vw); background:#fff; border:1px solid var(--line); border-radius:12px; box-shadow:0 14px 30px rgba(0,0,0,.08); max-height:360px; overflow:auto; padding:16px; z-index:10; }
+        .popover h4{ margin:0 0 8px; font-size:15px; }
+        .popover ul{ padding-left:18px; margin:8px 0; }
+        .popover li{ margin:6px 0; color:#475569; font-size:14px; }
+
+        .footer{ display:flex; gap:10px; justify-content:center; margin:24px 0 40px; }
+        .next-btn{ background:var(--accent); color:#fff; font-weight:700; border:0; border-radius:10px; padding:12px 22px; cursor:pointer; box-shadow:0 6px 16px rgba(34,197,94,.25); }
+        .next-btn:active{ transform:translateY(1px); }
+        .ghost-btn{ background:#fff; color:#0f172a; border:1px solid #cbd5e1; border-radius:10px; padding:12px 22px; cursor:pointer; }
+        .ghost-btn:active{ transform:translateY(1px); }
+
+        .hint{ font-size:12px; color:#e8ffef; display:block; margin-top:2px; text-align:center; opacity:.9; }
+    </style>
+</head>
+<body>
+<div class="topbar">
+    <div class="logo"><span class="logo__box">LOGO</span></div>
+    <a class="prev-link" href="javascript:void(0)">&lt; 이전페이지</a>
+</div>
+
+<div class="header">
+    <div class="header__eyebrow">Content Input</div>
+    <div class="header__title"><span class="header__brand">iAnchor</span> 생성기</div>
+    <div class="header__desc">뉴스 또는 릴스로 만들 내용을 넣으면 iAnchor가 완전한 영상을 만들어드립니다.</div>
+</div>
+
+<div id="root"></div>
+
+<script type="text/babel">
+    const { useEffect, useRef, useState } = React;
+
+    function useOnClickOutside(ref, handler){
+      useEffect(()=>{
+        function listener(e){ if(!ref.current || ref.current.contains(e.target)) return; handler(e); }
+        document.addEventListener("mousedown", listener);
+        document.addEventListener("touchstart", listener);
+        return ()=>{ document.removeEventListener("mousedown", listener); document.removeEventListener("touchstart", listener); };
+      },[ref, handler]);
+    }
+
+    function ContentInputCard(){
+      const [mode, setMode] = useState("뉴스");
+      const [title, setTitle] = useState("");
+      const [content, setContent] = useState("");
+      const [requirements, setRequirements] = useState("");
+      const [showGuide, setShowGuide] = useState(false);
+      const popRef = useRef(null);
+      useOnClickOutside(popRef, ()=> setShowGuide(false));
+
+      /* ---테스트용: 생성 시작 핸들러(임시) 시작 --- */
+      const startGenerate = () => {
+        const payload = { title, content, requirements, type: mode };
+        sessionStorage.setItem('ianchorPayload', JSON.stringify(payload));
+        window.location.href = 'result.html'; // 테스트 결과 페이지로 이동
+      };
+      /* ---테스트용: 생성 시작 핸들러(임시) 끝 --- */
+
+      return (
+        <div className="card" role="form" aria-label="콘텐츠 입력폼">
+          <div className="row" style={{marginBottom:10}}>
+            <input
+              className="input"
+              placeholder="영상으로 만들고 싶은 제목을 입력해주세요."
+              value={title}
+              onChange={(e)=>setTitle(e.target.value)}
+              aria-label="제목"
+            />
+            <select
+              className="type-select"
+              value={mode}
+              onChange={(e)=>setMode(e.target.value)}
+              aria-label="콘텐츠 종류"
+              title="콘텐츠 종류"
+            >
+              <option>뉴스</option>
+              <option>릴스</option>
+            </select>
+          </div>
+
+          <textarea
+            className="textarea"
+            placeholder="영상으로 만들고 싶은 내용을 입력해주세요."
+            value={content}
+            onChange={(e)=>setContent(e.target.value)}
+            aria-label="내용"
+          />
+
+          <textarea
+            className="textarea"
+            placeholder="원하시는 요구사항을 적어주세요."
+            value={requirements}
+            onChange={(e)=>setRequirements(e.target.value)}
+            aria-label="요구사항"
+          />
+
+          <div className="guideline-wrap">
+            <span className="guideline-trigger" onClick={()=>setShowGuide(v=>!v)} aria-haspopup="dialog">
+              ▾ 맞춤형 지침
+            </span>
+            {showGuide && (
+              <div className="popover" ref={popRef} role="dialog" aria-label="맞춤형 지침">
+                <h4>좋은 결과를 위한 입력 팁</h4>
+                <ul>
+                  <li><strong>목표 포맷</strong>: 뉴스/릴스, 원하는 길이(예: 60초/20초).</li>
+                  <li><strong>대상</strong>: 시청자(예: 대학생, 직장인).</li>
+                  <li><strong>톤</strong>: 객관적/차분, 친근/경쾌 등.</li>
+                  <li><strong>핵심 사실</strong>: 5W1H + 숫자/날짜.</li>
+                  <li><strong>출처</strong>: 참고 URL/기사 제목.</li>
+                  <li><strong>금지/주의</strong>: 금지어, 법적 주의 문구.</li>
+                  <li><strong>필수 포함</strong>: 해시태그·자막 키워드·CTA.</li>
+                  <li><strong>시각 요소</strong>: B-roll/컷 아이디어.</li>
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <div className="footer">
+            {/* ---테스트용: 임시 버튼 시작 --- */}
+            <button className="ghost-btn" type="button" onClick={startGenerate}>
+              생성 시작(테스트)
+            </button>
+            {/* ---테스트용: 임시 버튼 끝 --- */}
+
+            <button className="next-btn" type="button">
+              다음 페이지<br/>(영상 생성)
+            </button>
+          </div>
+          <span className="hint">* 테스트 버튼은 스크립트를 다음 페이지에 표시합니다.</span>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<ContentInputCard />);
+</script>
+</body>
+</html>
