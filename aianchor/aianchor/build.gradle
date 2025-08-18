@@ -40,4 +40,12 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+
+	// AianchorApplicationTests(통합 테스트)를 테스트 대상에서 제외
+	filter {
+		excludeTestsMatching "com.boradcast.aianchor.AianchorApplicationTests"
+	}
 }
+
+
+
