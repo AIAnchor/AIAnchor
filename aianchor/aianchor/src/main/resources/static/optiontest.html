@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 아바타 영상 생성 테스트</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: auto;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], textarea {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #response {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e9e9e9;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI 아바타 영상 생성 테스트</h1>
+
+        <label for="scriptText">스크립트 텍스트:</label>
+        <textarea id="scriptText" rows="5" placeholder="아바타가 말할 내용을 입력하세요.">안녕하세요. AI 아바타 영상 생성 테스트입니다.</textarea>
+
+        <label for="avatarId">아바타 ID (예: alice, bob):</label>
+        <input type="text" id="avatarId" value="alice">
+
+        <label for="voiceId">목소리 ID (예: ko-KR-SunHiNeural):</label>
+        <input type="text" id="voiceId" value="ko-KR-SunHiNeural">
+
+        <label for="style">말투 (예: cheerful, sad):</label>
+        <input type="text" id="style" value="neutral">
+
+        <label for="languageCode">언어 코드 (예: ko-KR, en-US):</label>
+        <input type="text" id="languageCode" value="ko-KR">
+
+        <label for="backgroundOption">배경 옵션 (예: #FFFFFF, transparent):</label>
+        <input type="text" id="backgroundOption" value="#FFFFFF">
+
+        <button onclick="generateVideo()">영상 생성 요청</button>
+
+        <h2>응답:</h2>
+        <pre id="response"></pre>
+    </div>
+
+    <script>
+        async function generateVideo() {
+            const scriptText = document.getElementById('scriptText').value;
+            const avatarId = document.getElementById('avatarId').value;
+            const voiceId = document.getElementById('voiceId').value;
+            const style = document.getElementById('style').value;
+            const languageCode = document.getElementById('languageCode').value;
+            const backgroundOption = document.getElementById('backgroundOption').value;
+
+            const requestBody = {
+                scriptText: scriptText,
+                avatarId: avatarId,
+                voiceId: voiceId,
+                style: style,
+                languageCode: languageCode,
+                backgroundOption: backgroundOption
+            };
+
+            const responseElement = document.getElementById('response');
+            responseElement.textContent = '요청 중...';
+
+            try { // 예외 처리를 위한 try 블록입니다. -->
+                const response = await fetch('/api/video/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                }
+
+                const result = await response.text();
+                responseElement.textContent = `성공: ${result}`;
+            } catch (error) {
+                responseElement.textContent = `에러: ${error.message}`;
+                console.error('영상 생성 요청 에러:', error);
+            }
+        }
+    </script>
+</body>
+</html>

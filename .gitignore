@@ -33,8 +33,7 @@ Thumbs.db
 # 로컬에서만 쓰는 애플리케이션 환경설정
 application-local.properties
 application-local.yml
-application-*.yml
-application-*.properties
+src/main/resources/application-secret.properties
 
 # Temporary files
 *.swp
@@ -52,3 +51,6 @@ application-*.properties
 
 # Exclude local environment files
 *.env
+
+# Java 버전 명시
+gradle.properties
